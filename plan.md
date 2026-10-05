@@ -175,4 +175,30 @@ marker in place the H-05 test reports `xfailed`.
 <!-- Fill in after the build: what changed from this plan and why. If
 nothing changed, say so in my own words. -->
 
-Nothing Changed, the plan passed the eval rubric.
+The code change matches the plan: same two files, same `UnknownHashError`
+catch, `xfail` marker removed, one new test using the repro's input. The
+"before" run with `--runxfail` confirmed `UnknownHashError` on unfixed code,
+and the new test also fails without the fix. `pytest tests/unit/test_security.py`
+(26 passed), `make lint` and `make typecheck` pass.
+
+One difference, in the plan's step 1: the branch is `fix/72-hash-error`
+(the branch already existed as `fix/issue-72-hash-error` and I renamed it to
+fit the `fix/<issue-number>-<slug>` house rule), not
+`fix/72-verify-password-malformed-hash`. It only affects the branch name, so
+the posted plan comment (which never names the branch) is still true and
+needs no update.
+
+The Risks section said I had not checked whether a corrupt bcrypt-looking
+hash raises something other than `UnknownHashError`. I have now: on the fixed
+code, `verify_password("password", "$2b$12$abc")` still raises
+`ValueError: salt too small (bcrypt requires exactly 22 chars)`, while
+`"not-a-valid-password-hash"` and `""` return `False`. Two other students'
+repro reports on #72 show the same result. I am still leaving it out of
+scope, since the issue names only `UnknownHashError`, and will raise it in
+the PR so a maintainer can decide whether to widen the `except`. The posted
+plan comment already says this case may raise `ValueError` and is out of
+scope, so it is still true and needs no update.
+
+Two other small notes: the docstring "Returns" line says it returns `False`
+for an unrecognized stored hash, as planned, and the dependencies were
+installed with a local `.venv` (pip install, no DB/seed/npm steps).
